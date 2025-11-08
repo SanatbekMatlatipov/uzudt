@@ -1,0 +1,130 @@
+Definitions and instructions for Universal Dependencies (UD) annotation for UZBEK sentences
+(possibly code-switched with Russian or English).
+
+Goal:
+Given a sentence, you must produce a list of tokens with their syntactic dependencies
+using the Universal Dependencies v2 framework and CoNLL-U style fields, adapted for Uzbek.
+
+Core syntactic relations (Uzbek):
+- nsubj: Nominal subject – the syntactic subject of a clause.
+- obj: Direct object – the main object of a verb.
+- iobj: Indirect object – secondary object (often dative-marked: -ga / -ka / -qa / -ga).
+- csubj: Clausal subject – clause functioning as subject of another clause.
+- ccomp: Clausal complement – finite or non-finite clause functioning as object of a verb.
+- xcomp: Open clausal complement – non-finite clause sharing its subject with the main verb.
+
+Modifiers and complements:
+- amod: Adjectival modifier – an adjective modifying a noun.
+- nmod: Nominal modifier – a noun phrase modifying another noun (often with case suffix or postposition).
+- advmod: Adverbial modifier – adverb or adverbial phrase modifying a verb, adjective, or adverb.
+- obl: Oblique nominal – argument-like nominal (often with locative, ablative, instrumental, etc.).
+- vocative: Vocative – noun used for direct address: “Azizlar, …”.
+
+Function words and connectors:
+- det: Determiner – quantifiers, demonstratives, numerals used as determiners.
+- case: Case marker – postpositions and case-like clitics attached to nominals.
+- mark: Subordinating conjunction/marker – “agar”, “chunki”, “deb”, “ki”, etc.
+- cc: Coordinating conjunction – “va”, “yoki”, “hamda”, “lekin”, “ammo”, “biroq”.
+- conj: Conjunct – element in a coordination linked to another conjunct.
+
+Structure and function management:
+- cop: Copula – linking verb “bo‘lmoq” when used as a separate word (e.g. “Bu yaxshi edi”).
+- aux: Auxiliary – aspect/tense/mood auxiliaries (e.g. “yuborib qo‘ydi”, “kelib turibdi”).
+- punct: Punctuation – punctuation marks.
+
+Discourse and pragmatic elements:
+- discourse: Discourse particle – “ya’ni”, “xullas”, “ha”, “xo‘sh”, filler words.
+- parataxis: Parataxis – loosely connected clauses, e.g. “Keldi, ko‘rdi, g‘alaba qozondi.”
+- dislocated: Dislocated element – pre/post-posed nominal linked anaphorically to the clause.
+
+Uzbek-specific notes:
+
+1. Word order:
+   - Basic word order is SOV. The root is usually a FINITE VERB.
+   - Non-finite forms:
+     - VerbForm=Conv (converb: -ib, -gach, -guncha, etc.)
+     - VerbForm=Part (participles: -gan, -adigan, -adigan, etc.)
+     - VerbForm=Vnoun (verbal noun: -moq, -ish, -uv).
+   - In syntactic dependencies, the main finite verb should be the single ROOT.
+
+2. Case and postpositions:
+   - Case markers are suffixes: -ni (Acc), -ga/-ka/-qa (Dat), -da (Loc), -dan (Abl).
+   - Postpositions (e.g. “uchun”, “bilan”, “tomon”, “tufayli”) are ADP with DEPREL=case, attached to the noun they modify.
+
+3. Clitics, particles, question markers:
+   - Yes/no question marker “mi / -mi / -mi?” is PART with relation “discourse” or “advmod” attached to the verb.
+   - Focus particles like “faqat”, “hatto”, “ham”, “esa” are PART or ADV (depending on context), usually advmod or discourse.
+
+4. Multiword tokens (MWT) in Uzbek:
+   - DO NOT overuse multiword tokens just for rich morphology. A single orthographic word with many suffixes is still ONE token.
+   - Use multiword tokens only for:
+     - Fixed multiword expressions that behave as one lexical unit (e.g. some idioms).
+     - Named entities like “Nyu-York”, “O‘rta Osiyo” can be split or treated as multiple tokens with flat:name if necessary.
+   - For this task, prefer SIMPLE tokenization: one token = one whitespace-separated word in the given sentence, unless there is a clear reason for MWT.
+
+5. Coordination:
+   - The first conjunct is usually the head.
+   - “cc” is the coordinating conjunction; “conj” are other conjuncts attached to the first conjunct or to the verb, following UD guidelines.
+
+6. Code-switching (Uzbek–Russian–English):
+   - You may see Russian or English words inside an Uzbek sentence.
+   - Tag these with appropriate UPOS for that language, but keep Uzbek syntax:
+       “Bugun meeting qilamiz” → “meeting” is NOUN, obj or obl depending on structure.
+   - Dependency relations follow the main Uzbek clause structure.
+
+UPOS tags:
+Use standard 17 UD POS tags: ADJ, ADP, ADV, AUX, CCONJ, DET, INTJ, NOUN, NUM, PART, PRON,
+PROPN, PUNCT, SCONJ, SYM, VERB, X. See UD Uzbek docs for morphology and features.
+
+Output format (per token):
+Return a JSON ARRAY of objects, one for each token, with fields:
+
+- "ID" (number): index of the token in the sentence, starting from 1.
+- "FORM" (string): surface form as in the sentence.
+- "LEMMA" (string): base/dictionary form (for Uzbek verbs use -moq form when appropriate).
+- "UPOS" (string): Universal POS tag.
+- "HEAD ID" (number): ID of the syntactic head token. For the root, use 0.
+- "HEAD" (string): FORM of the head token (or "root" for the root).
+- "DEPREL" (string): dependency relation (nsubj, obj, iobj, obl, advmod, amod, nmod, aux, cop, case, cc, conj, mark, punct, discourse, etc.).
+
+Constraints:
+
+1. Exactly one ROOT:
+   - Only ONE token must have "HEAD ID": 0 and "DEPREL": "root".
+   - All other tokens must have a valid head ID between 1 and N.
+
+2. Tokenization:
+   - For now, assume whitespace tokenization of the given sentence.
+   - Use one object per token, in order.
+   - Do NOT invent extra tokens or drop tokens, including punctuation.
+
+3. Punctuation:
+   - Attach punctuation (., !, ?, etc.) to the main predicate or root with DEPREL="punct".
+
+4. Ellipsis and incomplete sentences:
+   - If the sentence is incomplete but still has a clear main predicate, use that predicate as ROOT.
+   - If a final nominal has no clear head (like “Bu kitobni …”), you may attach it to the nearest plausible head as “dep”.
+
+5. Repetitions and hesitations:
+   - If a word is repeated (e.g. “Men men kech keldim”), give each occurrence the same head and DEPREL.
+
+6. Output format:
+   - Return ONLY a JSON array, no comments, no explanations.
+   - Example for an Uzbek sentence:
+
+Sentence: "Bugun men universitetga bordim ."
+
+[
+  {"ID": 1, "FORM": "Bugun", "LEMMA": "bugun", "UPOS": "ADV",
+   "HEAD ID": 4, "HEAD": "bordim", "DEPREL": "advmod"},
+  {"ID": 2, "FORM": "men", "LEMMA": "men", "UPOS": "PRON",
+   "HEAD ID": 4, "HEAD": "bordim", "DEPREL": "nsubj"},
+  {"ID": 3, "FORM": "universitetga", "LEMMA": "universitet", "UPOS": "NOUN",
+   "HEAD ID": 4, "HEAD": "bordim", "DEPREL": "obl"},
+  {"ID": 4, "FORM": "bordim", "LEMMA": "bor", "UPOS": "VERB",
+   "HEAD ID": 0, "HEAD": "root", "DEPREL": "root"},
+  {"ID": 5, "FORM": ".", "LEMMA": ".", "UPOS": "PUNCT",
+   "HEAD ID": 4, "HEAD": "bordim", "DEPREL": "punct"}
+]
+
+Sentence:
