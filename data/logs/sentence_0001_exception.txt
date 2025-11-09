@@ -1,0 +1,4 @@
+Sentence index: 1
+Sentence: Oʻzbekiston „Adolat“ sotsial-demokratik partiyasi („Adolat“ SDP) – Oʻzbekistondagi siyosiy partiyalardan biri boʻlib, 1995-yil 18-fevralda partiya taʼsis qurultoyida tuzilgan.
+
+Error: 'NoneType' object is not subscriptable
