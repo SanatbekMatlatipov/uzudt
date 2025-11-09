@@ -5,6 +5,9 @@ Goal:
 Given a sentence, you must produce a list of tokens with their syntactic dependencies
 using the Universal Dependencies v2 framework and CoNLL-U style fields, adapted for Uzbek.
 
+You will receive ONE sentence at a time. Your output MUST be a single JSON array
+of token objects, nothing else.
+
 Core syntactic relations (Uzbek):
 - nsubj: Nominal subject – the syntactic subject of a clause.
 - obj: Direct object – the main object of a verb.
@@ -30,7 +33,7 @@ Function words and connectors:
 Structure and function management:
 - cop: Copula – linking verb “bo‘lmoq” when used as a separate word (e.g. “Bu yaxshi edi”).
 - aux: Auxiliary – aspect/tense/mood auxiliaries (e.g. “yuborib qo‘ydi”, “kelib turibdi”).
-- punct: Punctuation – punctuation marks.
+- punct: Punctuation – punctuation marks like ., !, ?.
 
 Discourse and pragmatic elements:
 - discourse: Discourse particle – “ya’ni”, “xullas”, “ha”, “xo‘sh”, filler words.
@@ -43,7 +46,7 @@ Uzbek-specific notes:
    - Basic word order is SOV. The root is usually a FINITE VERB.
    - Non-finite forms:
      - VerbForm=Conv (converb: -ib, -gach, -guncha, etc.)
-     - VerbForm=Part (participles: -gan, -adigan, -adigan, etc.)
+     - VerbForm=Part (participles: -gan, -adigan, etc.)
      - VerbForm=Vnoun (verbal noun: -moq, -ish, -uv).
    - In syntactic dependencies, the main finite verb should be the single ROOT.
 
@@ -57,10 +60,8 @@ Uzbek-specific notes:
 
 4. Multiword tokens (MWT) in Uzbek:
    - DO NOT overuse multiword tokens just for rich morphology. A single orthographic word with many suffixes is still ONE token.
-   - Use multiword tokens only for:
-     - Fixed multiword expressions that behave as one lexical unit (e.g. some idioms).
-     - Named entities like “Nyu-York”, “O‘rta Osiyo” can be split or treated as multiple tokens with flat:name if necessary.
-   - For this task, prefer SIMPLE tokenization: one token = one whitespace-separated word in the given sentence, unless there is a clear reason for MWT.
+   - Use multiword tokens only for fixed multiword expressions when they behave as one lexical unit.
+   - For this task, prefer simple tokenization: one token = one whitespace-separated word in the given sentence, unless there is a very clear reason.
 
 5. Coordination:
    - The first conjunct is usually the head.
@@ -68,16 +69,15 @@ Uzbek-specific notes:
 
 6. Code-switching (Uzbek–Russian–English):
    - You may see Russian or English words inside an Uzbek sentence.
-   - Tag these with appropriate UPOS for that language, but keep Uzbek syntax:
-       “Bugun meeting qilamiz” → “meeting” is NOUN, obj or obl depending on structure.
-   - Dependency relations follow the main Uzbek clause structure.
+   - Tag these with appropriate UPOS for that language, but keep Uzbek syntax.
+     Example: “Bugun meeting qilamiz” → “meeting” is NOUN, obj or obl depending on structure.
 
 UPOS tags:
 Use standard 17 UD POS tags: ADJ, ADP, ADV, AUX, CCONJ, DET, INTJ, NOUN, NUM, PART, PRON,
-PROPN, PUNCT, SCONJ, SYM, VERB, X. See UD Uzbek docs for morphology and features.
+PROPN, PUNCT, SCONJ, SYM, VERB, X.
 
 Output format (per token):
-Return a JSON ARRAY of objects, one for each token, with fields:
+Return a JSON ARRAY of objects, one for each whitespace token in the sentence, with fields:
 
 - "ID" (number): index of the token in the sentence, starting from 1.
 - "FORM" (string): surface form as in the sentence.
@@ -85,7 +85,8 @@ Return a JSON ARRAY of objects, one for each token, with fields:
 - "UPOS" (string): Universal POS tag.
 - "HEAD ID" (number): ID of the syntactic head token. For the root, use 0.
 - "HEAD" (string): FORM of the head token (or "root" for the root).
-- "DEPREL" (string): dependency relation (nsubj, obj, iobj, obl, advmod, amod, nmod, aux, cop, case, cc, conj, mark, punct, discourse, etc.).
+- "DEPREL" (string): dependency relation (nsubj, obj, iobj, obl, advmod, amod, nmod, aux, cop,
+                     case, cc, conj, mark, punct, discourse, etc.).
 
 Constraints:
 
@@ -94,7 +95,7 @@ Constraints:
    - All other tokens must have a valid head ID between 1 and N.
 
 2. Tokenization:
-   - For now, assume whitespace tokenization of the given sentence.
+   - Assume whitespace tokenization of the given sentence.
    - Use one object per token, in order.
    - Do NOT invent extra tokens or drop tokens, including punctuation.
 
@@ -105,12 +106,11 @@ Constraints:
    - If the sentence is incomplete but still has a clear main predicate, use that predicate as ROOT.
    - If a final nominal has no clear head (like “Bu kitobni …”), you may attach it to the nearest plausible head as “dep”.
 
-5. Repetitions and hesitations:
-   - If a word is repeated (e.g. “Men men kech keldim”), give each occurrence the same head and DEPREL.
-
-6. Output format:
+5. Output format:
    - Return ONLY a JSON array, no comments, no explanations.
-   - Example for an Uzbek sentence:
+   - Do NOT wrap it in markdown or add any other text.
+
+Example:
 
 Sentence: "Bugun men universitetga bordim ."
 
@@ -127,4 +127,4 @@ Sentence: "Bugun men universitetga bordim ."
    "HEAD ID": 4, "HEAD": "bordim", "DEPREL": "punct"}
 ]
 
-Sentence:
+Always follow this JSON format.
