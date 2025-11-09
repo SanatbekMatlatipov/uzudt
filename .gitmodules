@@ -1,0 +1,3 @@
+[submodule "tools/ud-tools"]
+	path = tools/ud-tools
+	url = https://github.com/UniversalDependencies/tools.git
